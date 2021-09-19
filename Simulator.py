@@ -1,3 +1,4 @@
+from Simulatable import SolidObject
 import numpy as np
 from numpy.core.fromnumeric import transpose
 import scipy.sparse
@@ -7,37 +8,44 @@ from scipy.sparse.linalg import spsolve, eigs
 class ISimulator:
     def __init__(self):
         print(f'{type(self).__name__} created')
+        self.step_size = 1e-3
     def simulate(self, simulatable):
         pass
 class MovementSimulator(ISimulator):
     def __init__(self):
         self.simulators = []
     def add(self, simulator):
-        self.simulators.append(simulator) 
-class SemiImplicitIntegrator(ISimulator):
-    def simulate(self, solid_object):
-        
-        # get material parameters needed for the simulator
-        material =solid_object.get_material()
-        damping_alpha = material.damping_alpha
-        damping_beta = material.damping_beta
+        self.simulators.append(simulator)
+    def simulate(self, simulatable):
+        for simulator in self.simulators:
+            simulator(simulatable) 
 
+class ContactSimulator(ISimulator):
+    def simulate(self, solid_object):
+        print(f'running contact simulator')
+        
+class SemiImplicitIntegrator(ISimulator):
+    def simulate(self, solid_object: SolidObject):
+        print(f'running semi implicit integrator')
         # get current dof and mass of the object
         dof = solid_object.get_dof()
         positions = dof.get_positions()
         velocities = dof.get_velocities()
         mass_matrix = solid_object.get_mass()
         
-        # get current force state
-        force = solid_object.get_force_state()
-        internal_force = force.get_internal()
-        stiffness_matrix = -force.get_gradient()
-        external_force = force.get_external()
+        # get current forces
+        internal_force_result = solid_object.get_internal_force()
+        internal_force = internal_force_result.get_force()
+        stiffness_matrix = -internal_force_result.get_force_gradient()
+        external_force_result = solid_object.get_external_force()
+        external_force = external_force_result.get_force()
+        damping_force_result = solid_object.get_damping_force()
+        damping_force = damping_force_result.get_force()
+        damping_matrix = -damping_force_result.get_force_gradient()
 
         # construct properties only needed inside the simulator
-        dt = self.step_size()
-        damping_matrix = - damping_alpha * mass_matrix - damping_beta * stiffness_matrix
-        total_force = external_force + internal_force + damping_matrix * velocities
+        dt = self.step_size
+        total_force = external_force + internal_force + damping_force
         
         # solve the equation
         A = mass_matrix - dt * damping_matrix + (dt**2) * stiffness_matrix
@@ -49,7 +57,8 @@ class SemiImplicitIntegrator(ISimulator):
         new_positions = positions + dt * new_velociteis
 
         solid_object.update_dof(new_positions, new_velociteis)
-
+        solid_object.update_mesh()
+        solid_object.update_force_result()
 
 
 class SIEREIntegrator(ISimulator):
@@ -63,28 +72,26 @@ class SIEREIntegrator(ISimulator):
 
     def simulate(self, solid_object):
         
-        # get material parameters needed for the simulator
-        material =solid_object.get_material()
-        damping_alpha = material.damping_alpha
-        damping_beta = material.damping_beta
-
         # get current dof and mass of the object
         dof = solid_object.get_dof()
         positions = dof.get_positions()
         velocities = dof.get_velocities()
+        dof_size = positions.size
         mass_matrix = solid_object.get_mass()
-        dof_size = dof.get_size()
         
-        # get current force state
-        force = solid_object.get_force_state()
-        internal_force = force.get_internal()
-        stiffness_matrix = -force.get_gradient()
-        external_force = force.get_external()
+        # get current forces
+        internal_force_result = solid_object.get_internal_force()
+        internal_force = internal_force_result.get_force()
+        stiffness_matrix = -internal_force_result.get_force_gradient()
+        external_force_result = solid_object.get_external_force()
+        external_force = external_force_result.get_force()
+        damping_force_result = solid_object.get_damping_force()
+        damping_force = damping_force_result.get_force()
+        damping_matrix = -damping_force_result.get_force_gradient()
 
         # construct properties only needed inside the simulator
-        dt = self.step_size()
-        damping_matrix = - damping_alpha * mass_matrix - damping_beta * stiffness_matrix
-        total_force = external_force + internal_force + damping_matrix * velocities
+        dt = self.step_size
+        total_force = external_force + internal_force + damping_force
         
         [Us, D] = eigs(stiffness_matrix, mass_matrix, self.subspace_dimension,'smallestabs')
         vG = Us.dot(Us.transpose()).dot(mass_matrix).dot(velocities)
@@ -119,5 +126,13 @@ class SIEREIntegrator(ISimulator):
 
 class EnvironmentSimulator(ISimulator):
     def __init__(self):
-        
         pass
+    def simulate(self, environment):
+        
+        # can simulate the environment first, for example gravity, wind
+
+        # simulate indiviual objects in the environment
+        for simulator in self.simulator_map:
+            simulatable_list = self.simulator_map[simulator]
+            for simulatable in simulatable_list:
+                simulatable.update(simulator)

@@ -7,7 +7,7 @@ class Mesh:
         self.undeformed_vertices = vertices
         self.vertices = vertices
         self.elements = elements
-    def deform(self,indices, deformation):
+    def deform(self,deformation,indices):
         print(f'deforming a mesh')
         self.vertices[indices] = self.undeformed_vertices + deformation
 
@@ -22,8 +22,8 @@ class FEMMesh(Mesh):
         self.initialize_volume()
         self.initialize_stiffness_matrix_indices() 
         self.calculate_deformation_gradient()
-    def deform(self, indices, deformation):
-        super().deform(indices, deformation)
+    def deform(self, deformation, indices = np.array([0])):
+        super().deform(deformation, indices)
         self.calculate_deformation_gradient()
 
     def initialize_volume(self):

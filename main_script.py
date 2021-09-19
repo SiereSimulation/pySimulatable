@@ -1,13 +1,13 @@
-import EnvironmentLoader
+from EnvironmentLoader import EnvironmentLoader
 
 if __name__ == "__main__":
     draw_frame = True
-    env = EnvironmentLoader.EnvironmentLoader()
-    env.load("env file")
+    env = EnvironmentLoader()
+    env_mediator = env.load("env file")
 
-    num_frames = 1
+    num_frames = 10
 
     for i in range(num_frames):
-        # env.update()
+        env_mediator.refresh()
         if draw_frame:
             print(f'drawing environment')

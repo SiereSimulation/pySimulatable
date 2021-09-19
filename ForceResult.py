@@ -1,34 +1,42 @@
 import numpy as np
 import Material
 import Mesh
-
+from scipy.sparse import csr_matrix
 
 class ForceResult:
     def __init__(self) -> None:
         print(f'{type(self).__name__} created')
-    def get_internal(self) -> np.array:
-        return self.internal_force
-    def get_external(self) -> np.array:
-        return self.external_force
-    def get_gradient(self) -> np.array:
+        self.energy = 0
+        self.force = np.array([0])
+        self.force_gradient = csr_matrix([0])
+    def get_energy(self):
+        return self.energy
+    def get_force(self) -> np.array:
+        return self.force
+    def get_force_gradient(self) -> np.array:
         return self.force_gradient
-    def calculate_fem_force_result(self, material: Material.FEMMaterial, mesh: Material.FEMMesh):
+    def calculate_force_result(self, material: Material.Material, mesh: Mesh.Mesh):
         print(f'calculating fem force result')
         elements = mesh.get_elements()
         for i_element in range(elements.size):
-            if material.mtype == Material.MaterialType.neohookean:
+            if material.material_model == Material.MaterialModel.FEM:
+                if material.femtype == Material.FEMModelType.CG:
+                    if material.mtype == Material.FEMMaterialType.neohookean:
+                        pass
+                    elif material.mtype == Material.FEMMaterialType.stable_neohookean:
+                        pass
+                    elif material.mtype == Material.FEMMaterialType.stvk:
+                        pass
+                    elif material.mtype == Material.FEMMaterialType.linear:
+                        pass
+                    elif material.mtype == Material.FEMMaterialType.arap:
+                        pass
+                    else:
+                        pass
+                elif material.femtype == Material.FEMModelType.DG:
+                    pass
+                else:
+                    pass
+            elif material.material_model == Material.MaterialModel.MassSpring:
                 pass
-            elif material.mtype == Material.MaterialType.stable_neohookean:
-                pass
-            elif material.mtype == Material.MaterialType.stvk:
-                pass
-            elif material.mtype == Material.MaterialType.linear:
-                pass
-            elif material.mtype == Material.MaterialType.arap:
-                pass
-        
-    def calculate_mass_spring_force_result(self, material: Material.MassSpringMaterial, mesh: Mesh):
-        print(f'calculating mass spring force result')
-        elements = mesh.get_elements()
-        for i_element in range(elements.size):
-            material.stiffness[i_element]
+
