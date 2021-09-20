@@ -68,7 +68,7 @@ class Environment(ISimulatable):
     def set_gravity(self, gravity):
         self.gravity = gravity
 
-    def refresh(self):
+    def request_frame(self):
         self.update(self.environment_simulator)
     def update(self, simulator):
         # can do something with the environment before simulation

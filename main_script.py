@@ -8,6 +8,6 @@ if __name__ == "__main__":
     num_frames = 10
 
     for i in range(num_frames):
-        env_mediator.refresh()
+        env_mediator.request_frame()
         if draw_frame:
             print(f'drawing environment')
