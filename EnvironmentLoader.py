@@ -28,8 +28,11 @@ class EnvironmentLoader:
         for simulatable in simulatables:
             self.environment.add(simulatable)
         
-        simulator = Simulator.SemiImplicitIntegrator()
-
+        simulator = Simulator.MovementSimulator()
+        integrator = Simulator.SemiImplicitIntegrator()
+        contact = Simulator.ContactSimulator()
+        simulator.add(integrator)
+        simulator.add(contact)
         self.environment.environment_simulator.simulator_map = {simulator: simulatables}
         gravity = np.array([0,0,-9.8])     
         self.environment.set_gravity(gravity)

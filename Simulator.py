@@ -18,7 +18,7 @@ class MovementSimulator(ISimulator):
         self.simulators.append(simulator)
     def simulate(self, simulatable):
         for simulator in self.simulators:
-            simulator(simulatable) 
+            simulator.simulate(simulatable) 
 
 class ContactSimulator(ISimulator):
     def simulate(self, solid_object):
