@@ -2,6 +2,7 @@ from ForceResult import ForceResult
 from DoF import DoF
 import numpy as np
 import Material
+import Mesh
 from scipy.sparse import csr, csr_matrix
 
 class ISimulatable:
@@ -12,7 +13,7 @@ class ISimulatable:
 
 
 class SolidObject(ISimulatable):
-    def __init__(self,material,mesh):
+    def __init__(self,material:Material.Material ,mesh: Mesh.Mesh):
         super().__init__()
         print(f'{type(self).__name__} created')
         self.material = material
@@ -22,6 +23,8 @@ class SolidObject(ISimulatable):
         self.external_force = ForceResult()
         self.damping_force = ForceResult()
         self.mass = csr_matrix([0])
+    def get_mesh(self) -> Mesh.Mesh:
+        return self.mesh
     def get_material(self) -> Material.Material:
         return self.material
     def get_dof(self) -> DoF:

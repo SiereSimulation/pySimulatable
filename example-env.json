@@ -1,0 +1,24 @@
+{
+    "dimension": 3,
+    "gravity": [0,0,-9.8],
+    "step_size" : 5e-3,
+    "simulatable_list":{
+        "example_solid_object":{
+            "mesh": {
+                "source": "assets/spring_5",
+                "is_fem": true
+            },
+            "material": {
+                "FEM": true,
+                "density": 1000,
+                "elasticity_model": {
+                    "model" : 0,    
+                    "youngs": 1e5,
+                    "poisson": 0.45,
+                    "FEM": "CG"
+                }
+            },
+            "integrator": "SI"
+        }
+    }
+}

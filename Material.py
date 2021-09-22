@@ -6,7 +6,7 @@ class MaterialModel(Enum):
     FEM = 1
     MassSpring = 2
     
-class FEMMaterialType(Enum):
+class ElasticityModel(Enum):
     neohookean = 1
     stable_neohookean = 2
     stvk = 3
@@ -26,7 +26,7 @@ class Material:
     
 
 class FEMMaterial(Material):
-    def __init__(self, material_model: MaterialModel, density, youngs, poisson, mtype: FEMMaterialType, femtype : FEMModelType = FEMModelType.CG) -> None:
+    def __init__(self, density, youngs, poisson, mtype: ElasticityModel, material_model: MaterialModel = MaterialModel.FEM, femtype : FEMModelType = FEMModelType.CG) -> None:
         super().__init__(material_model,density)
         print(f'{type(self).__name__} created')
         self.youngs = youngs

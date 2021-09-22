@@ -3,7 +3,7 @@ from EnvironmentLoader import EnvironmentLoader
 if __name__ == "__main__":
     draw_frame = True
     env = EnvironmentLoader()
-    env_mediator = env.load("env file")
+    env_mediator = env.load("example-env.json")
 
     num_frames = 10
 

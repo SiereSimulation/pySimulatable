@@ -1,18 +1,19 @@
-from Simulatable import SolidObject
+from Simulatable import ISimulatable, SolidObject
 import numpy as np
 from numpy.core.fromnumeric import transpose
 import scipy.sparse
 from scipy.sparse.linalg import spsolve, eigs
-
+import DiscretizationCalculator
+import ForceIntegrator
 
 class ISimulator:
     def __init__(self):
         print(f'{type(self).__name__} created')
-        self.step_size = 1e-3
     def simulate(self, simulatable):
         pass
 class MovementSimulator(ISimulator):
     def __init__(self):
+        super().__init__()
         self.simulators = []
     def add(self, simulator):
         self.simulators.append(simulator)
@@ -20,46 +21,22 @@ class MovementSimulator(ISimulator):
         for simulator in self.simulators:
             simulator.simulate(simulatable) 
 
+class ForceSimulator(ISimulator):
+    def __init__(self):
+        super().__init__()
+    def simulate(self, simulatable:ISimulatable):
+        self.discretization_calculator.calculate()
+        self.force_integrator.integrate(1e-3, simulatable)
+    def set_discretization_calculator(self,discretization_calculator: DiscretizationCalculator.IDiscretizationCalculator):
+        self.discretization_calculator = discretization_calculator
+    def set_force_integrator(self,force_integrator: ForceIntegrator.IForceIntegrator):
+        self.force_integrator = force_integrator
+
 class ContactSimulator(ISimulator):
     def simulate(self, solid_object):
+        super().__init__()
         print(f'running contact simulator')
         
-class SemiImplicitIntegrator(ISimulator):
-    def simulate(self, solid_object: SolidObject):
-        print(f'running semi implicit integrator')
-        # get current dof and mass of the object
-        dof = solid_object.get_dof()
-        positions = dof.get_positions()
-        velocities = dof.get_velocities()
-        mass_matrix = solid_object.get_mass()
-        
-        # get current forces
-        internal_force_result = solid_object.get_internal_force()
-        internal_force = internal_force_result.get_force()
-        stiffness_matrix = -internal_force_result.get_force_gradient()
-        external_force_result = solid_object.get_external_force()
-        external_force = external_force_result.get_force()
-        damping_force_result = solid_object.get_damping_force()
-        damping_force = damping_force_result.get_force()
-        damping_matrix = -damping_force_result.get_force_gradient()
-
-        # construct properties only needed inside the simulator
-        dt = self.step_size
-        total_force = external_force + internal_force + damping_force
-        
-        # solve the equation
-        A = mass_matrix - dt * damping_matrix + (dt**2) * stiffness_matrix
-        b = dt * (total_force - dt * stiffness_matrix * velocities)
-        delta_velocities = spsolve(A,b)
-        
-        # update the object using the result
-        new_velociteis = velocities + delta_velocities
-        new_positions = positions + dt * new_velociteis
-
-        solid_object.update_dof(new_positions, new_velociteis)
-        solid_object.update_mesh()
-        solid_object.update_force_result()
-
 
 class SIEREIntegrator(ISimulator):
     def __init__(self, subspace_dimension):
