@@ -3,7 +3,7 @@ import numpy as np
 from numpy.core.fromnumeric import transpose
 import scipy.sparse
 from scipy.sparse.linalg import spsolve, eigs
-import DiscretizationCalculator
+import ForceCalculator
 import ForceIntegrator
 
 class ISimulator:
@@ -11,30 +11,27 @@ class ISimulator:
         print(f'{type(self).__name__} created')
     def simulate(self, simulatable):
         pass
-class MovementSimulator(ISimulator):
+
+class ForceSimulator(ISimulator):
     def __init__(self):
         super().__init__()
         self.simulators = []
     def add(self, simulator):
         self.simulators.append(simulator)
-    def simulate(self, simulatable):
-        for simulator in self.simulators:
-            simulator.simulate(simulatable) 
-
-class ForceSimulator(ISimulator):
-    def __init__(self):
-        super().__init__()
     def simulate(self, simulatable:ISimulatable):
-        self.discretization_calculator.calculate()
-        self.force_integrator.integrate(1e-3, simulatable)
-    def set_discretization_calculator(self,discretization_calculator: DiscretizationCalculator.IDiscretizationCalculator):
-        self.discretization_calculator = discretization_calculator
+        if not self.simulators:
+            self.force_calculator.calculate()
+            self.force_integrator.integrate(1e-3, simulatable.get_dof(), simulatable.internal_force, simulatable.external_force, simulatable.damping_force,simulatable.get_mass())
+        else:
+            for simulator in self.simulators:
+                simulator.simulate(simulatable) 
+    def set_force_calculator(self,force_calculator: ForceCalculator.IForceCalculator):
+        self.force_calculator = force_calculator
     def set_force_integrator(self,force_integrator: ForceIntegrator.IForceIntegrator):
         self.force_integrator = force_integrator
 
 class ContactSimulator(ISimulator):
     def simulate(self, solid_object):
-        super().__init__()
         print(f'running contact simulator')
         
 
@@ -106,10 +103,12 @@ class EnvironmentSimulator(ISimulator):
         pass
     def simulate(self, environment):
         
-        # can simulate the environment first, for example gravity, wind
-
+        # can simulate the environment first, for example gravity, wind etc
+        environment.calculate_gravity()
         # simulate indiviual objects in the environment
         for simulator in self.simulator_map:
             simulatable_list = self.simulator_map[simulator]
             for simulatable in simulatable_list:
                 simulatable.update(simulator)
+        environment.collision_detection()
+        environment.contact_resolution()

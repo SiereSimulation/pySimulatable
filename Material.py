@@ -1,6 +1,6 @@
 from enum import Enum
 from Damping import Damping
-
+import numpy as np
 
 class MaterialModel(Enum):
     FEM = 1
@@ -26,13 +26,26 @@ class Material:
     
 
 class FEMMaterial(Material):
-    def __init__(self, density, youngs, poisson, mtype: ElasticityModel, material_model: MaterialModel = MaterialModel.FEM, femtype : FEMModelType = FEMModelType.CG) -> None:
+    def __init__(self, density, youngs, poisson, mtype, material_model: MaterialModel = MaterialModel.FEM, femtype : FEMModelType = FEMModelType.CG) -> None:
         super().__init__(material_model,density)
         print(f'{type(self).__name__} created')
-        self.youngs = youngs
-        self.poisson = poisson
-        self.mtype = mtype
         self.femtype = femtype
+        if type(youngs) is list:
+            self.youngs = np.array(youngs)
+            self.poisson = np.array(poisson)
+            self.mtype = np.array(mtype)
+            self.mu = self.youngs/(2*(1+self.poisson))
+            self.lambd = (self.youngs * self.poisson)/((1+self.poisson)*(1-2*self.poisson))
+            self.density = np.array(density)
+        else:
+            self.youngs = youngs
+            self.poisson = poisson
+            self.mtype = mtype
+            self.mu = youngs/(2*(1+poisson))
+            self.lambd = (youngs * poisson)/((1+poisson)*(1-2*poisson))
+            self.density = density
+
+            
 class MassSpringMaterial:
     def __init__(self,material_model, density, stiffness) -> None:
         super().__init__(material_model,density)

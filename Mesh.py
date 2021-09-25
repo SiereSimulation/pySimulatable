@@ -1,9 +1,8 @@
 import numpy as np
 
 class Mesh:
-    def __init__(self,dimension) -> None:
+    def __init__(self) -> None:
         print(f'{type(self).__name__} created')
-        self.dimension = dimension
     def load_mesh(self, vertices, elements) -> None:
         self.undeformed_vertices = vertices
         self.vertices = vertices
@@ -28,8 +27,9 @@ class Mesh:
             lines = f.readlines()
             lines = [l.strip().split() for l in lines]
             ele_num = int(lines[0][0])
-            elements = np.asarray([[int(e) for e in lines[i + 1][1:5]] for i in range(ele_num)], dtype=int) - 1
-
+            elements = np.asarray([[int(e) for e in lines[i + 1][1:5]] for i in range(ele_num)], dtype=int) 
+            if np.min(elements) == 1:
+                elements = elements - 1
         return verts, elements
 # class FEMMesh(Mesh):
 #     Iv = np.eye(3) # Identity for vector

@@ -1,35 +1,33 @@
+from DoF import DoF
+from ForceResult import ForceResult
 from Simulatable import SolidObject
 import numpy as np
 from numpy.core.fromnumeric import transpose
 import scipy.sparse
 from scipy.sparse.linalg import spsolve, eigs
+from scipy.sparse import csc_matrix
 
 class IForceIntegrator:
     def __init__(self) -> None:
         print(f'{type(self).__name__} created')
         pass
-    def integrate(self, step_size, simulatable):
+    def integrate(self, step_size):
         pass
 
 class SemiImplicitIntegrator(IForceIntegrator):
     def __init__(self) -> None:
         print(f'{type(self).__name__} created')
         super().__init__()
-    def integrate(self, step_size, solid_object: SolidObject):
+    def integrate(self, step_size, dof:DoF, internal_force_result: ForceResult, external_force_result: ForceResult, damping_force_result:ForceResult, mass_matrix: csc_matrix):
         print(f'running semi implicit integrator')
         # get current dof and mass of the object
-        dof = solid_object.get_dof()
         positions = dof.get_positions()
         velocities = dof.get_velocities()
-        mass_matrix = solid_object.get_mass()
         
         # get current forces
-        internal_force_result = solid_object.get_internal_force()
         internal_force = internal_force_result.get_force()
         stiffness_matrix = -internal_force_result.get_force_gradient()
-        external_force_result = solid_object.get_external_force()
         external_force = external_force_result.get_force()
-        damping_force_result = solid_object.get_damping_force()
         damping_force = damping_force_result.get_force()
         damping_matrix = -damping_force_result.get_force_gradient()
 
@@ -46,4 +44,5 @@ class SemiImplicitIntegrator(IForceIntegrator):
         new_velociteis = velocities + delta_velocities
         new_positions = positions + dt * new_velociteis
 
-        solid_object.update_dof(new_positions, new_velociteis)
+        dof.set_positions(new_positions)
+        dof.set_velocities(new_velociteis)

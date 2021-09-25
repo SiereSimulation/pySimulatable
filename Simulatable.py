@@ -1,9 +1,10 @@
 from ForceResult import ForceResult
 from DoF import DoF
+from Discretization import Discretization
 import numpy as np
 import Material
 import Mesh
-from scipy.sparse import csr, csr_matrix
+from scipy.sparse import csc, csc_matrix
 
 class ISimulatable:
     def __init__(self):
@@ -13,24 +14,29 @@ class ISimulatable:
 
 
 class SolidObject(ISimulatable):
-    def __init__(self,material:Material.Material ,mesh: Mesh.Mesh):
+    def __init__(self,dimension,material:Material.Material ,mesh: Mesh.Mesh):
         super().__init__()
         print(f'{type(self).__name__} created')
+        self.dimension = dimension
         self.material = material
         self.mesh = mesh
-        self.dof = DoF()
+        self.dof = DoF(np.zeros(mesh.vertices.size),np.zeros(mesh.vertices.size),np.arange(mesh.vertices.size))
         self.internal_force = ForceResult()
         self.external_force = ForceResult()
         self.damping_force = ForceResult()
-        self.mass = csr_matrix([0])
+        self.discretization = Discretization()
+    def get_num_vertices(self) -> int:
+        return int(self.mesh.vertices.size/self.dimension)
+    def get_num_elements(self) -> int:
+        return self.mesh.elements.shape[0]
     def get_mesh(self) -> Mesh.Mesh:
         return self.mesh
     def get_material(self) -> Material.Material:
         return self.material
     def get_dof(self) -> DoF:
         return self.dof
-    def get_mass(self) -> csr_matrix:
-        return self.mass
+    def get_mass(self) -> csc_matrix:
+        return self.discretization.M
     def get_internal_force(self):
         return self.internal_force
     def get_external_force(self):
@@ -46,7 +52,7 @@ class SolidObject(ISimulatable):
         self.dof.set_positions(positions)
         self.dof.set_velocities(velocities)
     def update_mesh(self):
-        self.mesh.deform(self.dof.get_full_positions())
+        self.mesh.deform(np.reshape(self.dof.get_full_positions(),(-1,3)))
     def update_force_result(self):
         if(self.material.mtype == Material.FEMMaterial):
             self.force.calculate_force_result()
@@ -70,6 +76,14 @@ class Environment(ISimulatable):
     
     def set_gravity(self, gravity):
         self.gravity = gravity
+    def calculate_gravity(self):
+        print(f'calculating gravity')
+        for simulatable in self.simulatable_objects:
+            simulatable.external_force.force = simulatable.get_mass() @ np.tile(self.gravity,(simulatable.get_num_vertices(),1)).flatten()
+    def collision_detection(self):
+        print(f'collision detection')
+    def contact_resolution(self):
+        print(f'contact resolution')
 
     def request_frame(self):
         self.update(self.environment_simulator)
