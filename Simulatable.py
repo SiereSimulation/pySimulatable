@@ -45,8 +45,25 @@ class SolidObject(ISimulatable):
         return self.damping_force
     def update(self, simulator):
         # can do something to the object before simulation
+        self.set_axis_constraints(axis='z', fix_top=True, tolerance=0.12)
         simulator.simulate(self)
         # can do something after
+    def set_axis_constraints(self, axis, fix_top, tolerance):
+        max_in_columns = np.amax(self.mesh.undeformed_vertices, axis=0)
+        if axis == 'x':
+            axis_val = 0
+        elif axis == 'y':
+            axis_val = 1
+        elif axis == 'z':
+            axis_val = 2
+        max_val = max_in_columns[axis_val]
+        if fix_top:
+            free_indices = np.nonzero(np.tile((self.mesh.undeformed_vertices[:,axis_val] < max_val - tolerance),(3,1)).flatten("F"))[0]
+        else:
+            free_indices = np.nonzero(np.tile((self.mesh.undeformed_vertices[:,axis_val] > max_val + tolerance),(3,1)).flatten("F"))[0]
+        
+        self.dof.set_free_indices(free_indices)
+            
     def update_dof(self, positions, velocities):
         print(f'updating dof')
         self.dof.set_positions(positions)

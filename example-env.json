@@ -12,7 +12,7 @@
                 "FEM": true,
                 "density": 1000,
                 "elasticity_model": {
-                    "model" : 1,    
+                    "model" : 2,    
                     "youngs": 1e5,
                     "poisson": 0.45,
                     "FEM": "CG"
@@ -20,5 +20,10 @@
             },
             "integrator": "SI"
         }
+    },
+    "constraints": {
+        "axis": "z",
+        "location": "top",
+        "tolerance": "10"
     }
 }

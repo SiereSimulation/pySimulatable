@@ -37,8 +37,8 @@ class SemiImplicitIntegrator(IForceIntegrator):
         
         # solve the equation
         A = mass_matrix - dt * damping_matrix + (dt**2) * stiffness_matrix
-        b = dt * (total_force - dt * stiffness_matrix * velocities)
-        delta_velocities = spsolve(A,b)
+        b = dt * (total_force - dt * stiffness_matrix * dof.get_full_velocities())
+        delta_velocities = spsolve(A[dof.free_indices][:,dof.free_indices],b[dof.free_indices])
         
         # update the object using the result
         new_velociteis = velocities + delta_velocities

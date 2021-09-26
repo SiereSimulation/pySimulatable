@@ -15,6 +15,9 @@ class DoF:
     def get_full_velocities(self):
         return self.velocities
     def set_positions(self, positions):
-        pass
+        self.positions[self.free_indices] = positions
     def set_velocities(self, velocities):
-        pass
+        self.velocities[self.free_indices] = velocities
+    def set_free_indices(self, free_indices):
+        self.free_indices = free_indices
+

@@ -47,7 +47,7 @@ class EnvironmentLoader:
         force_simulator_builder_1.set_force_calculator(force_calculator)
         force_simulator_builder_1.set_force_integrator(force_integrator)
         force_simulator = force_simulator_builder_1.build()
-
+        force_simulator.set_step_size(data["step_size"])
         # # object2 = Simulatable.SolidObject(material=material,mesh=mesh)
 
         simulatables = []

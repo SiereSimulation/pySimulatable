@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.lib.arraysetops import unique
 
 class Mesh:
     def __init__(self) -> None:
@@ -31,6 +32,26 @@ class Mesh:
             if np.min(elements) == 1:
                 elements = elements - 1
         return verts, elements
+
+    @staticmethod
+    def surface_triangulation(node, element):
+        # translated from matlab distmesh by Per-Olof Persson
+        faces = np.vstack([element[:,[0,1,2]], element[:,[0,1,3]], element[:,[0,2,3]], element[:,[1,2,3]]])
+        node4 = np.array([element[:,3], element[:,2], element[:,1], element[:,0]]).flatten()
+        faces = np.sort(faces, axis = 1)
+        uni, index, reverse, counts = np.unique(faces,return_index=True, return_inverse=True, return_counts=True, axis=0)
+        none_repeating_indices = index[counts==1]
+        surface_triangulation = faces[none_repeating_indices,:]
+        node4 = node4[none_repeating_indices]
+
+        # ensure consistent orientation
+        v0 = node[surface_triangulation[:,1],:] - node[surface_triangulation[:,0],:]
+        v1 = node[surface_triangulation[:,2],:] - node[surface_triangulation[:,0],:]
+        v2 = node[node4,:] - node[surface_triangulation[:,0],:]
+        flip_index=np.nonzero(np.sum(np.cross(v0,v1,axis=1)*v2,1)>0)[0]
+        surface_triangulation[np.ix_(flip_index,[1,2])] = surface_triangulation[np.ix_(flip_index,[2,1])]
+        return surface_triangulation
+
 # class FEMMesh(Mesh):
 #     Iv = np.eye(3) # Identity for vector
 #     G = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1], [-1, -1, -1]])
