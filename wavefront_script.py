@@ -1,7 +1,12 @@
-import pywavefront
-from pywavefront import visualization
+import pyredner
+import torch
 
-scene = pywavefront.Wavefront("woman_outfit.obj")
-# scene.parse()
+objects = pyredner.load_obj("shirt_lp__corona.obj", return_objects=True)
+camera = pyredner.automatic_camera_placement(objects, resolution=(512, 512))
+scene = pyredner.Scene(camera = camera, objects = objects)
+light = pyredner.DirectionalLight(direction = torch.tensor((1.0, -1.0, 1.0), device = pyredner.get_device()),intensity = torch.tensor((2.0, 3.0, 2.0), device = pyredner.get_device()))
 
-visualization.draw(scene)
+img = pyredner.render_deferred(scene = scene, lights = [light])
+# img = pyredner.render_albedo(scene)
+img_file = 't_shirt.png'
+pyredner.imwrite(img, img_file)

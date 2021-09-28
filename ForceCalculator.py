@@ -100,18 +100,12 @@ class FEMDiscretizationCalculator(IForceCalculator):
                 # for stiffness matrix
                 C = self.solid_object.material.mu * self.Im + self.solid_object.material.mu * Kk \
                     - self.solid_object.material.lambd * (math.log(J)*Kk) \
-                    + self.solid_object.material.lambd * (self.Kmm@(tFINV.flatten().reshape(-1,1)@np.reshape(np.transpose(tFINV),(1,9))))    
+                    + self.solid_object.material.lambd * (self.Kmm@(tFINV.flatten("F").reshape(-1,1)@np.reshape(tFINV,(1,9))))    
                 
                 # for force
                 P = self.solid_object.material.mu * (tF - tFINV.transpose()) + self.solid_object.material.lambd * math.log(J) * tFINV.transpose()
             elif self.solid_object.material.mtype == ElasticityModel.stable_neohookean:
-                # for stiffness matrix
-                C = self.solid_object.material.mu * self.Im + self.solid_object.material.mu * Kk \
-                    - self.solid_object.material.lambd * ((J-1)*Kk) \
-                    + self.solid_object.material.lambd * (self.Kmm@(tFINV.flatten().reshape(-1,1)@np.reshape(np.transpose(tFINV),(1,9))))    
-                
-                # for force
-                P = self.solid_object.material.mu * (tF - tFINV.transpose()) + self.solid_object.material.lambd * (J-1) * tFINV.transpose()
+                pass
             elif self.solid_object.material.mtype == ElasticityModel.stvk:
                 print(f'stvk not implemented yet')
                 

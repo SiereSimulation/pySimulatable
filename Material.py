@@ -18,7 +18,7 @@ class FEMModelType(Enum):
     DG = 2
 
 class Material:
-    def __init__(self,material_model: MaterialModel, density) -> None:
+    def __init__(self,material_model: MaterialModel = MaterialModel.FEM , density : float = 1000 ) -> None:
         print(f'{type(self).__name__} created')
         self.density = density
         self.material_model = material_model

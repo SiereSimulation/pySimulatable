@@ -6,7 +6,7 @@ from numpy.core.fromnumeric import transpose
 import scipy.sparse
 from scipy.sparse.linalg import spsolve, eigs
 from scipy.sparse import csc_matrix
-
+import math
 class IForceIntegrator:
     def __init__(self) -> None:
         print(f'{type(self).__name__} created')
@@ -46,3 +46,5 @@ class SemiImplicitIntegrator(IForceIntegrator):
 
         dof.set_positions(new_positions)
         dof.set_velocities(new_velociteis)
+
+
