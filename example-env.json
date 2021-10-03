@@ -18,12 +18,13 @@
                     "FEM": "CG"
                 }
             },
-            "integrator": "SI"
+            "integrator": "SI",
+            "constraints": [{
+                "axis": "z",
+                "location": "top",
+                "tolerance": "0.12"
+            }]
         }
-    },
-    "constraints": {
-        "axis": "z",
-        "location": "top",
-        "tolerance": "10"
     }
+    
 }

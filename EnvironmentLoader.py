@@ -12,13 +12,14 @@ import json
 import ForceSimulatorBuilder
 import ForceCalculator
 import ForceIntegrator
+from RenderData import RenderData
 
 class EnvironmentLoader:
     def __init__(self):
         print(f'{type(self).__name__} created')
         self.environment = Simulatable.Environment()
         self.environment.environment_simulator = Simulator.EnvironmentSimulator()
-        
+ 
     def load(self,filepath):
         print(f'loading {filepath}')
 
@@ -43,6 +44,10 @@ class EnvironmentLoader:
         integrator_param = data["simulatable_list"]["example_solid_object"]["integrator"]
         if integrator_param == "SI":
             force_integrator = ForceIntegrator.SemiImplicitIntegrator()
+        constraints = data["simulatable_list"]["example_solid_object"]['constraints']
+        for constraint_param in constraints:
+            constraint = Simulatable.Constraint(axis=constraint_param["axis"],location=constraint_param["location"],tolerance=float(constraint_param["tolerance"]))
+            object1.add_constraint(constraint=constraint)
         force_simulator_builder_1 = ForceSimulatorBuilder.ForceSimulatorBuilder()
         force_simulator_builder_1.set_force_calculator(force_calculator)
         force_simulator_builder_1.set_force_integrator(force_integrator)
@@ -67,6 +72,10 @@ class EnvironmentLoader:
         self.environment.environment_simulator.simulator_map = {simulator: simulatables}
         gravity = np.array([0,0,-9.8])     
         self.environment.set_gravity(gravity)
+
+        ## load rendering setting -> still empty
+        self.environment.render_data = RenderData(data["render_info"])
+
         print(f'end loading {filepath}')
         return self.environment
 

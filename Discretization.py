@@ -10,7 +10,7 @@ class Discretization:
 
 
 class FEMDiscretization(Discretization):
-    def __init__(self,dimension,mesh,material) -> None:
+    def __init__(self,dimension,mesh) -> None:
         print(f'{type(self).__name__} created')
         self.Dm = np.empty((dimension * mesh.elements.shape[0], dimension)) # reference shape matrix
         self.Ds = np.empty((dimension * mesh.elements.shape[0], dimension)) # reference shape matrix
@@ -23,8 +23,4 @@ class FEMDiscretization(Discretization):
         self.stiffness_matrix_index_count = 0
         self.ii = np.empty(mesh.elements.shape[0] * 144)
         self.jj = np.empty(mesh.elements.shape[0] * 144)
-        self.density = material.density
-        self.mu = material.mu
-        self.lambd = material.lambd
-        self.mtype = material.mtype
         

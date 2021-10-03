@@ -4,6 +4,9 @@ from numpy.lib.arraysetops import unique
 class Mesh:
     def __init__(self) -> None:
         print(f'{type(self).__name__} created')
+        self.undeformed_vertices = np.array([])
+        self.vertices = np.array([])
+        self.elements = np.array([])
     def load_mesh(self, vertices, elements) -> None:
         self.undeformed_vertices = vertices
         self.vertices = vertices

@@ -2,21 +2,22 @@ from pyvista.utilities.parametric_objects import surface_from_para
 from EnvironmentLoader import EnvironmentLoader
 import numpy as np
 import Mesh
-from common.renderer import render_frames
+from common.renderer import PbrtRender, BlenderRender
 
 if __name__ == "__main__":
     draw_frame = True
     env = EnvironmentLoader()
-    env_mediator = env.load("./python/example-env.json")
+    env_mediator = env.load("./python/bar-env.json")
 
-    num_frames = 200
+    num_frames = 2
     filepath = "./python/tests/results/view"
     surface_triangulation = []
-    all_verts = []
+    all_export_files = []
     for i in range(num_frames):
         env_mediator.request_frame()
+        all_export_files.append('view{index:04d}.obj'.format(index=i))
         if draw_frame:
-            print(f'drawing environment')
+            print(f'drawing environment frame {i}')
             verts = env_mediator.simulatable_objects[0].mesh.vertices
             elems = env_mediator.simulatable_objects[0].mesh.elements
             if not surface_triangulation:
@@ -31,9 +32,7 @@ if __name__ == "__main__":
                     for i in p:
                         f.write(f" {i+1}" )
                     f.write("\n")
-            all_verts.append(verts)
-    ## temporal render calls -> do nothing for now 
-    render_frames(all_verts, surface_triangulation, basepath="./python/tests/results/render")
-    
+    renderer = BlenderRender(env_mediator.render_data)
+    renderer.render_animation(all_export_files)
 
     

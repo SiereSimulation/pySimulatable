@@ -7,8 +7,13 @@ class ForceResult:
     def __init__(self) -> None:
         print(f'{type(self).__name__} created')
         self.energy = 0
-        self.force = np.array([0])
-        self.force_gradient = csc_matrix([0])
+        self.force = np.array([])
+        self.force_gradient = csc_matrix([])
+    def __add__(self, other):
+        force = ForceResult()
+        force.force = self.get_force() + other.get_force()
+        force.force_gradient = self.get_force_gradient() + other.get_force_gradient()
+        return force
     def get_energy(self) -> float:
         return self.energy
     def get_force(self) -> np.array:
@@ -19,5 +24,10 @@ class ForceResult:
         self.energy = energy
     def set_force(self, force: np.array):
         self.force = force
+    def add_force(self, force: np.array):
+        self.force = self.force + force
     def set_force_gradient(self, force_gradient: csc_matrix):
         self.force_gradient = force_gradient
+    def add_force_gradient(self, force_gradient: csc_matrix):
+        self.force_gradient = self.force_gradient + force_gradient
+    

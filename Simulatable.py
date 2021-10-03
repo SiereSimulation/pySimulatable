@@ -5,6 +5,12 @@ import numpy as np
 import Material
 import Mesh
 from scipy.sparse import csc, csc_matrix
+from RenderData import RenderData
+class Constraint:
+    def __init__(self,axis,location,tolerance) -> None:
+        self.axis = axis
+        self.location = location
+        self.tolerance = tolerance
 
 class ISimulatable:
     def __init__(self):
@@ -20,11 +26,15 @@ class SolidObject(ISimulatable):
         self.dimension = dimension
         self.material = material
         self.mesh = mesh
-        self.dof = DoF(np.zeros(mesh.vertices.size),np.zeros(mesh.vertices.size),np.arange(mesh.vertices.size))
+        self.dof = DoF()
+        self.dof.initialize_from_mesh(mesh)
         self.internal_force = ForceResult()
         self.external_force = ForceResult()
         self.damping_force = ForceResult()
         self.discretization = Discretization()
+        self.constraint_list = []
+    def add_constraint(self, constraint):
+        self.constraint_list.append(constraint)
     def get_num_vertices(self) -> int:
         return int(self.mesh.vertices.size/self.dimension)
     def get_num_elements(self) -> int:
@@ -43,13 +53,22 @@ class SolidObject(ISimulatable):
         return self.external_force
     def get_damping_force(self):
         return self.damping_force
+    def add_internal_force(self,force):
+        self.internal_force = self.internal_force + force
+    def add_external_force(self,force):
+        self.external_force = self.external_force + force
+    def add_damping_force(self,force):
+        self.damping_force = self.damping_force + force
+    
     def update(self, simulator):
-        # can do something to the object before simulation
-        self.set_axis_constraints(axis='z', fix_top=True, tolerance=0.12)
+        # can do something to the object before simulation, like set constraints
+        self.apply_constraints()
         simulator.simulate(self)
-        # can do something after
-    def set_axis_constraints(self, axis, fix_top, tolerance):
+        # can do something after, like updating the mesh
+        self.update_mesh()
+    def set_axis_constraints(self, axis, location, tolerance):
         max_in_columns = np.amax(self.mesh.undeformed_vertices, axis=0)
+        min_in_columns = np.amin(self.mesh.undeformed_vertices, axis=0)
         if axis == 'x':
             axis_val = 0
         elif axis == 'y':
@@ -57,27 +76,21 @@ class SolidObject(ISimulatable):
         elif axis == 'z':
             axis_val = 2
         max_val = max_in_columns[axis_val]
-        if fix_top:
-            free_indices = np.nonzero(np.tile((self.mesh.undeformed_vertices[:,axis_val] < max_val - tolerance),(3,1)).flatten("F"))[0]
+        min_val = min_in_columns[axis_val]
+        constraint_range = (max_val - min_val) * tolerance/100
+        if location == "top":
+            current_free_indices = np.nonzero(np.tile((self.mesh.undeformed_vertices[:,axis_val] < max_val - constraint_range),(3,1)).flatten("F"))[0]
         else:
-            free_indices = np.nonzero(np.tile((self.mesh.undeformed_vertices[:,axis_val] > max_val + tolerance),(3,1)).flatten("F"))[0]
-        
-        self.dof.set_free_indices(free_indices)
-            
-    def update_dof(self, positions, velocities):
-        print(f'updating dof')
-        self.dof.set_positions(positions)
-        self.dof.set_velocities(velocities)
+            current_free_indices = np.nonzero(np.tile((self.mesh.undeformed_vertices[:,axis_val] > min_val + constraint_range),(3,1)).flatten("F"))[0]
+        old_free_indices = self.dof.free_indices
+        # new indices are in the both sets, i.e. the intersection
+        new_free_indices = np.intersect1d(old_free_indices,current_free_indices)
+        self.dof.set_free_indices(new_free_indices)
+    def apply_constraints(self):
+        for constraint in self.constraint_list:
+            self.set_axis_constraints(axis=constraint.axis, location=constraint.location, tolerance=constraint.tolerance)
     def update_mesh(self):
         self.mesh.deform(np.reshape(self.dof.get_full_positions(),(-1,3)))
-    def update_force_result(self):
-        if(self.material.mtype == Material.FEMMaterial):
-            self.force.calculate_force_result()
-        elif():
-            pass
-        else:
-            pass
-
 
 class Environment(ISimulatable):
 
@@ -86,11 +99,12 @@ class Environment(ISimulatable):
         self.simulatable_objects = []
         self.gravity = np.array([0,0,-9.8])     
         self.environment_simulator = None
+        self.render_data = None
         
     def add(self, simulatable):
         print(f'adding simulatable')
         self.simulatable_objects.append(simulatable)
-    
+     
     def set_gravity(self, gravity):
         self.gravity = gravity
     def calculate_gravity(self):

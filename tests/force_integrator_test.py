@@ -10,4 +10,4 @@ from pathlib import Path
 from scipy.io import loadmat
 
 def assets_directory():
-    return str(Path(__file__).resolve().parent.parent) + "/assets/"
+    return str(Path(__file__).resolve().parent.parent.parent) + "/assets/"

@@ -1,0 +1,52 @@
+{
+    "dimension": 3,
+    "gravity": [0,0,-9.8],
+    "step_size" : 5e-3,
+    "simulatable_list":{
+        "example_solid_object":{
+            "mesh": {
+                "source": "./assets/bar/bar",
+                "is_fem": true
+            },
+            "material": {
+                "FEM": true,
+                "density": 1000,
+                "elasticity_model": {
+                    "model" : 1,    
+                    "youngs": 1e4,
+                    "poisson": 0.45,
+                    "FEM": "CG"
+                }
+            },
+            "integrator": "SI",
+            "constraints": [
+                {"axis": "x",
+                "location": "top",
+                "tolerance": "5"},
+                {"axis": "x",
+                    "location": "bottom",
+                    "tolerance": "5"}
+            ]
+            
+        }
+    },
+    "render_info":{
+        "asset_path": "./assets/bar",
+        "light_map": "uffizi-large.exr",
+        "sample": 256,
+        "max_depth": 4,
+        "fov": 9.78,
+        "resolution": [512,512],
+        "lookat": [0.8105021715164185, -1.2990005016326904, 0.4928547143936157, 
+                   0.34246888756752014, -0.4684652090072632, 0.19093427062034607,
+                   -0.13167625665664673, 0.27229440212249756, 0.9531616568565369],
+        "cam_location": [0.81095, -1.299, 0.49285],
+        "cam_rotation": [72.4, 1.04, 29.1],
+        "mat_color": [0.02, 0.026, 0.8],
+        "scene_geometry_files": ["bar_blender_scene.py"],
+        "output_path": "./python/tests/results",
+        "blender_path": "/home/ichao/software/blender-2.93.4-linux-x64",
+        "pbrt_build_path": "/home/ichao/software/pbrt-v3/build"
+    }
+    
+}
